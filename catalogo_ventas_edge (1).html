@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartFiles | Catálogo de Ventas</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:linear-gradient(135deg,#f7f9ff 0%,#eef5ff 50%,#f8f4ff 100%);color:#172033}
+header{background:linear-gradient(135deg,#6c2bd9,#1976d2,#00a8cc);box-shadow:0 8px 30px #1976d255;color:white;padding:28px 6%;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+.logo{font-size:30px;font-weight:800} .tag{opacity:.9;margin-top:4px}
+.cart{background:white;color:#123b7a;border:0;border-radius:14px;padding:12px 18px;font-weight:700;cursor:pointer}
+.hero{padding:48px 6%;background:linear-gradient(135deg,#ffffff,#eef7ff);text-align:center;position:relative;overflow:hidden}
+.hero h1{font-size:42px;margin:0 0 10px;background:linear-gradient(90deg,#6c2bd9,#1976d2);-webkit-background-clip:text;color:transparent} .hero p{color:#607086;font-size:17px}
+.controls{display:flex;gap:12px;max-width:1150px;margin:24px auto;padding:0 20px;flex-wrap:wrap}
+input,select{padding:14px 16px;border:1px solid #d5deea;border-radius:12px;font-size:15px;background:white}
+input{flex:1;min-width:230px} select{min-width:190px}
+.grid{max-width:1150px;margin:auto;padding:0 20px 45px;display:grid;grid-template-columns:repeat(auto-fit,minmax(245px,1fr));gap:18px}
+.card{background:rgba(255,255,255,.96);border-radius:20px;padding:21px;box-shadow:0 10px 30px #17345b18;border:1px solid #e2e9f5;display:flex;flex-direction:column;transition:.25s;position:relative;overflow:hidden}.card:hover{transform:translateY(-6px);box-shadow:0 16px 35px #17345b25}
+.badge{display:inline-block;width:max-content;padding:7px 11px;border-radius:20px;background:linear-gradient(90deg,#eee5ff,#e4f4ff);color:#5b27b5;font-size:12px;font-weight:800}
+.icon{font-size:38px;margin:14px 0 5px} .card h3{margin:5px 0 8px;font-size:19px}
+.code{font-size:12px;color:#8a96a8} .info{font-size:13px;color:#66758a;min-height:38px}
+.price{font-size:27px;font-weight:900;color:#1976d2;margin:14px 0}
+button.add{margin-top:auto;background:linear-gradient(90deg,#6c2bd9,#1976d2);color:white;border:0;padding:13px;border-radius:12px;font-weight:700;cursor:pointer}
+button.add:hover{background:#6c2bd9;transform:scale(1.02)}
+footer{background:#12233d;color:#dce8f7;text-align:center;padding:25px}
+#empty{text-align:center;grid-column:1/-1;padding:40px;color:#6c7890}
+.modal{display:none;position:fixed;inset:0;background:#0007;z-index:10;align-items:center;justify-content:center;padding:20px}
+.modal.show{display:flex} .box{background:white;border-radius:18px;padding:24px;max-width:500px;width:100%;max-height:80vh;overflow:auto}
+.box h2{margin-top:0} .line{display:flex;justify-content:space-between;border-bottom:1px solid #e8edf3;padding:12px 0;gap:12px}
+.total{font-size:22px;font-weight:800;text-align:right;margin:18px 0}
+.close{float:right;border:0;background:#edf2f7;border-radius:8px;padding:8px;cursor:pointer}
+@media(max-width:600px){.hero h1{font-size:29px}}
+</style>
+</head>
+<body>
+<header>
+  <div><div class="logo">✨ SmartFiles</div><div class="tag">Catálogo inteligente de productos y servicios</div></div>
+  <button class="cart" onclick="openCart()">🛒 Carrito (<span id="count">0</span>)</button>
+</header>
+
+<section class="hero">
+  <h1>Todo lo que necesitas, en un solo lugar</h1>
+  <p>Servicios digitales y tecnológicos para facilitar tu trabajo.</p>
+</section>
+
+<div class="controls">
+  <input id="search" placeholder="🔎 Buscar producto o servicio..." oninput="render()">
+  <select id="category" onchange="render()"><option value="Todos">Todas las categorías</option></select>
+  <select id="type" onchange="render()"><option value="Todos">Productos y servicios</option><option>Producto</option><option>Servicio</option></select>
+</div>
+
+<main id="grid" class="grid"></main>
+
+<div id="modal" class="modal" onclick="if(event.target===this)closeCart()">
+  <div class="box">
+    <button class="close" onclick="closeCart()">✕</button>
+    <h2>🛒 Mi carrito</h2>
+    <div id="cartLines"></div>
+    <div class="total">Total: S/ <span id="total">0.00</span></div>
+    <button class="add" style="width:100%" onclick="finish()">Solicitar pedido</button>
+  </div>
+</div>
+
+<footer>
+  <b>✨ SmartFiles</b> · Catálogo de ventas · Soluciones digitales y tecnológicas
+</footer>
+
+<script>
+const items = [{"code": "P0071", "name": "Escaneo de imágenes PDF", "category": "Digital", "stock": "1 IrisScan", "price": 30, "sales": 230, "type": "Servicio"}, {"code": "P0070", "name": "Organización de archivos", "category": "Digital", "stock": "30", "price": 200, "sales": 30, "type": "Servicio"}, {"code": "P0072", "name": "Impresión de archivos", "category": "Tecnológico", "stock": "10 Tintas", "price": 1.5, "sales": 120, "type": "Servicio"}, {"code": "P0067", "name": "Escaneo de PDF", "category": "Digital", "stock": "1 IrisScan", "price": 25, "sales": 90, "type": "Servicio"}, {"code": "P0068", "name": "Unión y División de PDF", "category": "Digital", "stock": "Disponible", "price": 15, "sales": 60, "type": "Servicio"}, {"code": "P0069", "name": "Almacenamiento en Google Drive", "category": "Tecnológico", "stock": "15 Licencias", "price": 45, "sales": 15, "type": "Servicio"}, {"code": "P0075", "name": "Compartir archivos", "category": "Tecnológico", "stock": "15 Licencias", "price": 35, "sales": 10, "type": "Servicio"}, {"code": "P0076", "name": "Enlaces protegidos mediante Sync.Com", "category": "Tecnológico", "stock": "15 Licencias", "price": 50, "sales": 6, "type": "Servicio"}, {"code": "P0073", "name": "Sincronización en DropBox", "category": "Tecnológico", "stock": "15 Licencias", "price": 50, "sales": 5, "type": "Servicio"}, {"code": "P0074", "name": "Servicios de Zoho WorkDrive", "category": "Tecnológico", "stock": "15 Licencias", "price": 55, "sales": 2, "type": "Servicio"}];
+let cart = [];
+
+const icons = {
+  "Electronica":"💻","Útiles escolares":"📚","Accesorios":"🎒","Digital":"📄","Tecnologico":"☁️"
+};
+
+function init(){
+  const cats=[...new Set(items.map(x=>x.category))].sort();
+  const sel=document.getElementById('category');
+  cats.forEach(c=>{let o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o)})
+  render();
+}
+function render(){
+  const q=document.getElementById('search').value.toLowerCase();
+  const cat=document.getElementById('category').value;
+  const type=document.getElementById('type').value;
+  const list=items.filter(x=>
+    (x.name.toLowerCase().includes(q)||x.code.toLowerCase().includes(q)||x.category.toLowerCase().includes(q)) &&
+    (cat==='Todos'||x.category===cat) && (type==='Todos'||x.type===type)
+  );
+  const grid=document.getElementById('grid');
+  if(!list.length){grid.innerHTML='<div id="empty">No encontramos resultados. Prueba otra búsqueda.</div>';return}
+  grid.innerHTML=list.map(x=>`
+    <article class="card">
+      <span class="badge">${x.type} · ${x.category}</span>
+      <div class="icon">${icons[x.category]||'⭐'}</div>
+      <div class="code">${x.code}</div>
+      <h3>${x.name}</h3>
+      <div class="info">Stock: ${x.stock} · Ventas del mes: ${x.sales}</div>
+      <div class="price">S/ ${x.price.toFixed(2)}</div>
+      <button class="add" onclick="add('${x.code}')">Agregar al carrito</button>
+    </article>`).join('');
+}
+function add(code){
+  const x=items.find(i=>i.code===code);
+  const found=cart.find(i=>i.code===code);
+  if(found) found.qty++; else cart.push({...x,qty:1});
+  updateCount();
+}
+function updateCount(){document.getElementById('count').textContent=cart.reduce((a,x)=>a+x.qty,0)}
+function openCart(){
+  const box=document.getElementById('cartLines');
+  box.innerHTML=cart.length?cart.map(x=>`
+    <div class="line"><span>${x.name} × ${x.qty}</span><b>S/ ${(x.price*x.qty).toFixed(2)}</b></div>`).join(''):'<p>Tu carrito está vacío.</p>';
+  document.getElementById('total').textContent=cart.reduce((a,x)=>a+x.price*x.qty,0).toFixed(2);
+  document.getElementById('modal').classList.add('show');
+}
+function closeCart(){document.getElementById('modal').classList.remove('show')}
+function finish(){
+  if(!cart.length){alert('Agrega productos o servicios al carrito primero.');return}
+  alert('¡Pedido registrado como solicitud! Total: S/ '+cart.reduce((a,x)=>a+x.price*x.qty,0).toFixed(2));
+}
+init();
+</script>
+</body>
+</html>
